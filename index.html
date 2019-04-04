@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <title>threeJS_demo</title>
+    <script src="three.js"></script>
+    <script src="OrbitControls.js"></script>
+</head>
+<style media="screen">
+    html,body {
+        padding: 0;
+        margin: 0;
+        overflow: hidden;
+    }
+</style>
+
+<body>
+    <script type="text/javascript">
+        var camera, scene, renderer;
+        var geometry, material, mesh;
+        var coordinate, cube;
+
+        init();
+        animate();
+
+        function init() {
+
+            camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 0.01, 2000);
+            // camera.position.x = -40;
+            camera.position.y = -80;
+            camera.position.z = 80;
+            camera.lookAt(0,0,0)
+
+            // 创建场景
+            scene = new THREE.Scene();
+            renderer = new THREE.WebGLRenderer({
+                antialias: true
+            });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.body.appendChild(renderer.domElement);
+            // renderer.setPixelRatio(window.devicePixelRatio);
+            // renderer.setClearColor(0x040c52); // 设置背景的颜色
+            renderer.shadowMap.enabled = true; // 设置是否开启投影, 开启的话, 光照会产生投影
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap; // 设置投影类型, 柔和投影
+            // 鼠标控制插件
+            const controls = new THREE.OrbitControls(camera, renderer.domElement)
+            controls.enableZoom = true; //是否可以缩放
+
+            // 创建光源
+            var light = new THREE.PointLight(0x333333, 10, 2000);
+            var sphere = new THREE.SphereGeometry(10, 32, 32);
+            light.add(new THREE.Mesh(sphere, new THREE.MeshBasicMaterial({
+                color: 0xffffff,
+                transparent: true,
+                opacity: 0
+            })));
+            light.position.set(120, 120, 120);
+            scene.add(light);
+
+            // var skyBoxGeometry = new THREE.BoxGeometry(1500, 1500, 1500);
+            // var texture = new THREE.TextureLoader().load("./assets/bg.jpg");
+            // var skyBoxMaterial = new THREE.MeshBasicMaterial({
+            //     map: texture,
+            //     side: THREE.DoubleSide
+            // });
+            // var skyBox = new THREE.Mesh(skyBoxGeometry, skyBoxMaterial);
+            // scene.add(skyBox)
+
+            // 创建地面 plane
+            var floor_geometry = new THREE.PlaneGeometry(100, 100, 32);
+            var texture = new THREE.TextureLoader().load("./assets/floor.jpg");
+            var floor_material = new THREE.MeshPhongMaterial({
+                map: texture,
+                side: THREE.DoubleSide
+            });
+            var plane = new THREE.Mesh(floor_geometry, floor_material);
+            scene.add(plane);
+
+
+            // 主体逻辑部分 开始
+            // 整体场景中的元素为 柱状体 拥有固定的 长度 宽度 ，只有 高度 自由变化
+            class Cube {
+                constructor(w, l, h) {
+                    // 属性 暂不支持静态属性*static
+                    var geometry = new THREE.BoxGeometry(w, l, h);
+                    var material = new THREE.MeshNormalMaterial()
+                    var ThreeCubeMesh = new THREE.Mesh(geometry, material);
+                    scene.add(ThreeCubeMesh);
+                    return Object.assign(this, ThreeCubeMesh)
+                }
+                // 方法
+                // 设置高度
+                setCoordinate(co){
+                    this.position.x = co[1];
+                    this.position.y = co[0];
+                }
+                setHeight(h) {
+                    this.position.z = h;
+                }
+            }
+
+
+            // 导入实际立方体的坐标信息，
+            // 坐标【x_axis,y_axis】
+            coordinate = [];//存放元素坐标
+            cube = [];//存放众多元素
+            for (let y = 0; y < 81; y++) {
+                // y Axis
+                coordinate[y] = [];
+                cube[y] = [];
+                for (let x = 0; x < 61; x++) {
+                    // x Axis
+                    coordinate[y].push([y, x]);
+                    cube[y][x] = new Cube(0.9, 0.9, 20);
+                    cube[y][x].setCoordinate([y, x]);
+                }
+            }
+
+            // coordinate 是柱状体的坐标数据
+            // var Recursive = function(array,Func){}
+            // coordinate.forEach(val=>{
+            //     if(Array.isArray(val)){
+            //         val.forEach(v=>{
+            //             var cube = new Cube(0.9, 0.9, 20);
+            //             cube.setCoordinate(v);
+            //         })
+            //     }
+            // })
+
+
+            // var loader = new THREE.FileLoader();
+            // loader.load(
+            //     // 资源的URL
+            //     "./coordinate.json",
+            //
+            //     // onLoad回调
+            //     // Here the loaded data is assumed to be an object
+            //     function(obj) {
+            //         // Add the loaded object to the scene
+            //         // scene.add(obj);
+            //         var coordinate = JSON.parse(obj).coordinate;
+            //         // 坐标【x_axis,y_axis】 而 *** coordinate[y][x]
+            //         console.log(coordinate[2][0])
+            //     },
+            //
+            //     // onProgress回调
+            //     function(xhr) {
+            //         console.log('柱状体坐标文件 ' + (xhr.loaded / xhr.total * 100) + '% loaded');
+            //     },
+            //
+            //     // onError回调
+            //     function(err) {
+            //         console.error('An error happened');
+            //     }
+            // );
+
+
+            // geometry = new THREE.BoxGeometry(cube.w, cube.l, cube.h);
+            // material = new THREE.MeshBasicMaterial()
+            // var material = new THREE.MeshBasicMaterial({
+            //     color: 0xffffff,
+            //     envMap: this.scene.background,
+            //     refractionRatio: 0.95
+            // });
+            // mesh = new THREE.Mesh(geometry, material);
+            // scene.add(mesh);
+
+
+
+        }
+
+
+
+
+        function animate() {
+
+            requestAnimationFrame(animate);
+
+            // mesh.rotation.x += 0.01;
+            // mesh.rotation.y += 0.02;
+            cube[THREE.Math.randInt(0,80)][THREE.Math.randInt(0,60)].setHeight(THREE.Math.randInt(-10,10))
+
+            renderer.render(scene, camera);
+
+        }
+    </script>
+</body>
+
+</html>
