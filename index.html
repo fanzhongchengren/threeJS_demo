@@ -28,10 +28,13 @@
         function init() {
 
             camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 0.01, 2000);
-            // camera.position.x = -40;
-            camera.position.y = -80;
-            camera.position.z = 80;
-            camera.lookAt(0,0,0)
+            camera.position.x = -20;
+            camera.position.y = -20;
+            camera.position.z = 30;
+            camera.up.x = 1;
+            camera.up.y = 0;
+            camera.up.z = 0;
+            // camera.lookAt(50,50,100);
 
             // 创建场景
             scene = new THREE.Scene();
@@ -59,14 +62,14 @@
             light.position.set(120, 120, 120);
             scene.add(light);
 
-            // var skyBoxGeometry = new THREE.BoxGeometry(1500, 1500, 1500);
-            // var texture = new THREE.TextureLoader().load("./assets/bg.jpg");
-            // var skyBoxMaterial = new THREE.MeshBasicMaterial({
-            //     map: texture,
-            //     side: THREE.DoubleSide
-            // });
-            // var skyBox = new THREE.Mesh(skyBoxGeometry, skyBoxMaterial);
-            // scene.add(skyBox)
+            var skyBoxGeometry = new THREE.BoxGeometry(1500, 1500, 1500);
+            var texture = new THREE.TextureLoader().load("./assets/bg.jpg");
+            var skyBoxMaterial = new THREE.MeshBasicMaterial({
+                map: texture,
+                side: THREE.DoubleSide
+            });
+            var skyBox = new THREE.Mesh(skyBoxGeometry, skyBoxMaterial);
+            scene.add(skyBox)
 
             // 创建地面 plane
             var floor_geometry = new THREE.PlaneGeometry(100, 100, 32);
@@ -76,8 +79,8 @@
                 side: THREE.DoubleSide
             });
             var plane = new THREE.Mesh(floor_geometry, floor_material);
+            plane.position.y = 45;
             scene.add(plane);
-
 
             // 主体逻辑部分 开始
             // 整体场景中的元素为 柱状体 拥有固定的 长度 宽度 ，只有 高度 自由变化
@@ -85,7 +88,9 @@
                 constructor(w, l, h) {
                     // 属性 暂不支持静态属性*static
                     var geometry = new THREE.BoxGeometry(w, l, h);
+                    // var geometry = new THREE.SphereGeometry( 0.1, 10, 10 );
                     var material = new THREE.MeshNormalMaterial()
+                    // var material = new THREE.MeshBasicMaterial({color: '#285680'})
                     var ThreeCubeMesh = new THREE.Mesh(geometry, material);
                     scene.add(ThreeCubeMesh);
                     return Object.assign(this, ThreeCubeMesh)
@@ -101,23 +106,6 @@
                 }
             }
 
-
-            // 导入实际立方体的坐标信息，
-            // 坐标【x_axis,y_axis】
-            coordinate = [];//存放元素坐标
-            cube = [];//存放众多元素
-            for (let y = 0; y < 81; y++) {
-                // y Axis
-                coordinate[y] = [];
-                cube[y] = [];
-                for (let x = 0; x < 61; x++) {
-                    // x Axis
-                    coordinate[y].push([y, x]);
-                    cube[y][x] = new Cube(0.9, 0.9, 20);
-                    cube[y][x].setCoordinate([y, x]);
-                }
-            }
-
             // coordinate 是柱状体的坐标数据
             // var Recursive = function(array,Func){}
             // coordinate.forEach(val=>{
@@ -128,7 +116,6 @@
             //         })
             //     }
             // })
-
 
             // var loader = new THREE.FileLoader();
             // loader.load(
@@ -156,7 +143,6 @@
             //     }
             // );
 
-
             // geometry = new THREE.BoxGeometry(cube.w, cube.l, cube.h);
             // material = new THREE.MeshBasicMaterial()
             // var material = new THREE.MeshBasicMaterial({
@@ -167,20 +153,88 @@
             // mesh = new THREE.Mesh(geometry, material);
             // scene.add(mesh);
 
-
+            // 导入实际立方体的坐标信息，
+            // 坐标【x_axis,y_axis】
+            coordinate = [];//存放元素坐标
+            cube = [];//存放众多元素
+            for (let y = 0; y < 100; y++) {
+                // y Axis
+                coordinate[y] = [];
+                cube[y] = [];
+                for (let x = 0; x < 50; x++) {
+                    // x Axis
+                    coordinate[y].push([y, x]);
+                    cube[y][x] = new Cube(0.85, 0.85, 16);
+                    cube[y][x].setCoordinate([y, x]);
+                }
+            }
 
         }
 
+        var start_time=0;
+        var step = 0.1;
+        var count = 0;
 
-
-
-        function animate() {
-
+        function animate(t) {
             requestAnimationFrame(animate);
 
-            // mesh.rotation.x += 0.01;
-            // mesh.rotation.y += 0.02;
-            cube[THREE.Math.randInt(0,80)][THREE.Math.randInt(0,60)].setHeight(THREE.Math.randInt(-10,10))
+            // if(!t){return}
+            // start_time += (t - start_time)*step;
+            start_time = start_time + step;
+            if(start_time > 2*Math.PI){
+                start_time = start_time - 2*Math.PI;
+                if(count === 0){
+                    count = 1;//一个周期结束
+                }else{
+                    count = 0;
+                }
+            }else{
+
+            }
+            // var h = Math.sin(start_time%Math.PI/2);
+            // y = sinx   x=kt
+            cube.forEach((val,index_y)=>{
+                if(Array.isArray(val)){
+                    val.forEach((v,index_x)=>{
+
+                        var _hb = 6*Math.sin(start_time-start_time + 0.04*index_y);
+                        var _h = 6*Math.sin(start_time + 0.04*index_y);
+                        var _ha = 6*Math.sin(start_time+start_time + 0.04*index_y);
+
+                        if(index_x < 30 && index_x > 20 && index_y < 70 && index_y > 30){
+                            // if(count === 1 && v.position.z < 5.8 ) {
+
+                            // }else{
+                                // v.setHeight(_h)
+                            // }
+                            if(count === 1){
+                                // 显示周期
+                                if(_h >= _hb && _h >= _ha){
+                                    // 最高点  可导函数
+                                    v.setHeight(6)
+                                }else{
+                                    v.setHeight(_h)
+                                }
+                                cube[20][30].setHeight(20)
+                            }else {
+                                // 隐藏周期
+                                if(_h >= _hb && _h >= _ha){
+                                    v.setHeight(_h)
+                                }else {
+                                    v.setHeight(6)
+                                }
+                                cube[20][30].setHeight(10)
+                            }
+
+                        }else{
+                            v.setHeight(_h)
+                        }
+                    })
+                }
+            })
+            // cube[0][0].setHeight(h);
+            // cube[THREE.Math.randInt(0,80)][THREE.Math.randInt(0,60)].setHeight(h)
+
 
             renderer.render(scene, camera);
 
